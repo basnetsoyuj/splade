@@ -138,12 +138,20 @@ class Splade(SiameseBase):
                          model_type_or_dir_q=model_type_or_dir_q,
                          freeze_d_model=freeze_d_model,
                          fp16=fp16)
-        self.output_dim = self.transformer_rep.transformer.config.vocab_size  # output dim = vocab size = 30522 for BERT
+        self.output_dim = 150000 # self.transformer_rep.transformer.config.vocab_size  # output dim = vocab size = 30522 for BERT
+        self.linear = torch.nn.Linear(self.transformer_rep.transformer.config.hidden_size, self.output_dim)
+        self.linear_q = torch.nn.Linear(self.transformer_rep_q.transformer.config.hidden_size, self.output_dim) if model_type_or_dir_q is not None else None
         assert agg in ("sum", "max")
         self.agg = agg
 
     def encode(self, tokens, is_q):
         out = self.encode_(tokens, is_q)["logits"]  # shape (bs, pad_len, voc_size)
+        
+        if is_q and self.transformer_rep_q is not None:
+            out = self.linear_q(out)
+        else:
+            out = self.linear(out)
+
         if self.agg == "sum":
             return torch.sum(torch.log(1 + torch.relu(out)) * tokens["attention_mask"].unsqueeze(-1), dim=1)
         else:
