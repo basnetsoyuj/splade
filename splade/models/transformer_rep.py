@@ -139,8 +139,8 @@ class Splade(SiameseBase):
                          freeze_d_model=freeze_d_model,
                          fp16=fp16)
         self.output_dim = 150000 # self.transformer_rep.transformer.config.vocab_size  # output dim = vocab size = 30522 for BERT
-        self.linear = torch.nn.Linear(self.transformer_rep.transformer.config.hidden_size, self.output_dim)
-        self.linear_q = torch.nn.Linear(self.transformer_rep_q.transformer.config.hidden_size, self.output_dim) if model_type_or_dir_q is not None else None
+        self.linear = torch.nn.Linear(self.transformer_rep.transformer.config.vocab_size, self.output_dim)
+        self.linear_q = torch.nn.Linear(self.transformer_rep_q.transformer.config.vocab_size, self.output_dim) if model_type_or_dir_q is not None else None
         assert agg in ("sum", "max")
         self.agg = agg
 
